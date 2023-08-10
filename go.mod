@@ -1,4 +1,4 @@
-module github.com/icpd/rabbitmq
+module github.com/sniperZj/rabbitmq
 
 go 1.20
 
