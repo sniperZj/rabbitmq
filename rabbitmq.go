@@ -93,6 +93,21 @@ func (r *Rabbitmq) Publish(ctx context.Context, msg []byte, options ...Option) e
 	return err
 }
 
+// 基本Publish(交换机需提前创建)
+func (r *Rabbitmq) BasicPublish(exchangeName, routeKey string, msg []byte) error {
+	var b backoff.BackOff
+	b = backoff.NewConstantBackOff(r.PublishRetryDelay)
+	b = backoff.WithMaxRetries(b, r.PublishMaxTries)
+
+	err := backoff.Retry(func() error {
+		return r.conn.BasicPublish(context.Background(), exchangeName, routeKey, amqp.Publishing{
+			Body: msg,
+		})
+	}, b)
+
+	return err
+}
+
 // Subscribe 订阅消息
 func (r *Rabbitmq) Subscribe(handler Handler, options ...Option) error {
 	if r.conn == nil {

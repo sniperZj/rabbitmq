@@ -251,6 +251,17 @@ func (r *rabbitmqConn) Publish(ctx context.Context, msg amqp.Publishing, opts Op
 	return r.channel.Publish(ctx, opts.Exchange.Name, opts.Key, msg)
 }
 
+func (r *rabbitmqConn) BasicPublish(ctx context.Context, exchangeName, routeKey string, msg amqp.Publishing) error {
+	select {
+	case <-r.close:
+		return ErrRabbitmqClosed
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-r.waitConnection:
+	}
+	return r.channel.Publish(ctx, exchangeName, routeKey, msg)
+}
+
 // DeclareExchange 声明交换机，如果已经声明过则不再声明
 func (r *rabbitmqConn) DeclareExchange(opts ExchangeOptions) error {
 	if _, ok := r.exchangeMap.Load(opts.Name); ok {
