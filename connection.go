@@ -84,6 +84,7 @@ func (r *rabbitmqConn) Connect(config *amqp.Config) error {
 
 func (r *rabbitmqConn) connect(config *amqp.Config) error {
 	if err := r.tryConnect(config); err != nil {
+		log.Printf("Error: rabbitmq reconnect: %v", err)
 		return err
 	}
 
@@ -92,6 +93,7 @@ func (r *rabbitmqConn) connect(config *amqp.Config) error {
 	r.Unlock()
 
 	// 创建重连协程
+	log.Println("Info: create a reconnection coroutine")
 	go r.reconnect(config)
 
 	return nil
